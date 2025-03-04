@@ -31,13 +31,26 @@ model = FastLanguageModel.get_peft_model(
  use_rslora = False
 )
 
+model = FastLanguageModel.get_peft_model(
+    model,
+    r=16,
+    target_modules = ["q_proj","o_proj","k_proj","gate_proj","up_proj","down_proj"],
+    lora_alpha = 16,
+ lora_dropout = 0, # Optimized at 0
+ bias = "none", # No additional bias terms
+ use_gradient_checkpointing = "unsloth", # Gradient checkpointing to save memory
+ random_state = 3407,
+ use_rslora = False
+)
+
 dataset = load_dataset('opennyaiorg/aalap_instruction_dataset',split="train")
 import pandas as pd
 dataset=pd.DataFrame(dataset)
+dataset.columns
 
-dataset = dataset[dataset["task"].str.contains("argument_generation")]
-dataset.head()
+df = dataset[dataset["task"].str.contains("argument_generation")]
+df.head()
 
-test = dataset["input_text"].iloc[0]
-new = test.replace('\n',"").replace('\n',"").replace('"""',"").replace('[',"").replace(']',"").replace("/ ","")
-new
+df["input_text"] = df["input_text"].str.replace(r'[\n"""[\]/]', '', regex=True)
+df.head()
+# dataset.head()
